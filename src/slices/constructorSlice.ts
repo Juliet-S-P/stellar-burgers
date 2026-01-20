@@ -20,12 +20,14 @@ export const constructorSlice = createSlice({
     addBun: (state, action: PayloadAction<TIngredient>) => {
       state.bun = action.payload;
     },
-    addIngredient: (state, action: PayloadAction<TIngredient>) => {
-      const ingredient: TConstructorIngredient = {
-        ...action.payload,
-        id: uuidv4()
-      };
-      state.ingredients.push(ingredient);
+    addIngredient: {
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        state.ingredients.push(action.payload);
+      },
+      prepare: (ingredient: TIngredient) => {
+        const id = uuidv4();
+        return { payload: { ...ingredient, id } };
+      }
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.ingredients = state.ingredients.filter(
@@ -73,6 +75,7 @@ export const {
   clearConstructor
 } = constructorSlice.actions;
 
+// Селекторы должны быть объявлены после создания slice
 export const getConstructorBun = (state: RootState) =>
   state.burgerConstructor.bun;
 export const getConstructorIngredients = (state: RootState) =>

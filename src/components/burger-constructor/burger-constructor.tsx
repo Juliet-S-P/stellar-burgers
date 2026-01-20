@@ -21,7 +21,9 @@ export const BurgerConstructor: FC = () => {
   const navigate = useNavigate();
 
   const bun = useSelector(getConstructorBun);
-  const ingredients = useSelector(getConstructorIngredients);
+  const ingredients = useSelector(
+    getConstructorIngredients
+  ) as TConstructorIngredient[];
   const orderRequest = useSelector(getOrderRequest);
   const orderModalData = useSelector(getOrderModalData);
   const user = useSelector(getUser);
@@ -32,7 +34,9 @@ export const BurgerConstructor: FC = () => {
   };
 
   const onOrderClick = () => {
-    if (!bun || orderRequest) return;
+    if (!bun || orderRequest) {
+      return;
+    }
 
     if (!user) {
       navigate('/login');
@@ -52,7 +56,6 @@ export const BurgerConstructor: FC = () => {
 
   const closeOrderModal = () => {
     dispatch(clearOrder());
-    dispatch(clearConstructor());
   };
 
   const price = useMemo(

@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { orderBurgerApi } from '../utils/burger-api';
 import { TOrder } from '@utils-types';
 import { RootState } from '../services/store';
+import { clearConstructor } from './constructorSlice';
 
 type TOrderState = {
   orders: TOrder[];
@@ -22,10 +23,17 @@ export const initialState: TOrderState = {
 export const createOrder = createAsyncThunk<
   TOrder,
   string[],
-  { rejectValue: string }
->('order/create', async (ingredients, { rejectWithValue }) => {
+  { rejectValue: string; state: RootState }
+>('order/create', async (ingredients, { rejectWithValue, dispatch }) => {
   try {
     const response = await orderBurgerApi(ingredients);
+
+    if (!response.success) {
+      return rejectWithValue('Ошибка при создании заказа');
+    }
+
+    dispatch(clearConstructor());
+
     return response.order;
   } catch (err: unknown) {
     if (err instanceof Error) return rejectWithValue(err.message);

@@ -7,11 +7,9 @@ import {
   getAuthLoading
 } from '../../slices/authSlice';
 import { Preloader } from '../../components/ui';
-import { useNavigate } from 'react-router-dom';
 
 export const Register: FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,12 +23,8 @@ export const Register: FC = () => {
 
     dispatch(registerUser({ email, password, name: userName }))
       .unwrap()
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        // Ошибка регистрации
-      });
+      .then(() => {})
+      .catch(() => {});
   };
 
   if (loading) {

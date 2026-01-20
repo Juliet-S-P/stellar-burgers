@@ -67,11 +67,7 @@ export const profileOrdersSlice = createSlice({
         orders: TOrder[];
       }>
     ) => {
-      const sortedOrders = [...action.payload.orders].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      state.orders = sortedOrders;
+      state.orders = action.payload.orders;
       state.wsError = null;
     },
     wsConnectionChange: (state, action: PayloadAction<boolean>) => {

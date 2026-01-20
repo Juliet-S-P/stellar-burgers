@@ -7,11 +7,9 @@ import {
   getAuthLoading
 } from '../../slices/authSlice';
 import { Preloader } from '../../components/ui';
-import { useNavigate } from 'react-router-dom';
 
 export const Login: FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,15 +19,10 @@ export const Login: FC = () => {
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-
     dispatch(loginUser({ email, password }))
       .unwrap()
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        // Ошибка входа
-      });
+      .then(() => {})
+      .catch(() => {});
   };
 
   if (loading) {

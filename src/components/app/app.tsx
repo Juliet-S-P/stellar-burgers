@@ -40,18 +40,14 @@ const App = () => {
 
     dispatch(fetchIngredients());
     dispatch(checkUserAuth());
-
     dispatch(connectFeedSocket());
 
     setInitialized(true);
 
     return () => {
       dispatch(disconnectFeedSocket());
-      if (user) {
-        dispatch(disconnectProfileOrdersSocket());
-      }
     };
-  }, [dispatch, initialized, user]);
+  }, [dispatch, initialized]);
 
   useEffect(() => {
     if (!user || !initialized) return;

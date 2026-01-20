@@ -1,4 +1,4 @@
-import { FC, memo, useEffect } from 'react';
+import { FC, memo, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
 import { OrdersListUI } from '@ui';
 import { OrdersListProps } from './type';
@@ -58,13 +58,15 @@ export const OrdersList: FC<UniversalOrdersListProps> = memo(
       return <Preloader />;
     }
 
-    const orderByDate =
-      mode === 'feed' && !propOrders
-        ? orders
-        : [...orders].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+    const orderByDate = useMemo(() => {
+      if (mode === 'feed' && !propOrders) {
+        return orders;
+      }
+      return [...orders].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }, [orders, mode, propOrders]);
 
     return <OrdersListUI orderByDate={orderByDate} />;
   }
