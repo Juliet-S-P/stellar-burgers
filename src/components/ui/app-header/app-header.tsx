@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import styles from './app-header.module.css';
 import { TAppHeaderUIProps } from './type';
 import {
@@ -9,57 +9,69 @@ import {
   ProfileIcon
 } from '@zlden/react-developer-burger-ui-components';
 
-export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => {
-  const location = useLocation();
+export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => (
+  <header className={styles.header}>
+    <nav className={`${styles.menu} p-4`}>
+      <div className={styles.menu_part_left}>
+        {/* Конструктор */}
+        <NavLink
+          to='/'
+          className={({ isActive }) =>
+            `${styles.link} ${isActive ? styles.link_active : ''}`
+          }
+          end
+        >
+          {({ isActive }) => (
+            <>
+              <BurgerIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2 mr-10'>
+                Конструктор
+              </p>
+            </>
+          )}
+        </NavLink>
 
-  const isConstructor = location.pathname === '/';
-  const isFeed = location.pathname === '/feed';
-  const isProfile = location.pathname.startsWith('/profile');
+        {/* Лента заказов */}
+        <NavLink
+          to='/feed'
+          className={({ isActive }) =>
+            `${styles.link} ${isActive ? styles.link_active : ''}`
+          }
+          end
+        >
+          {({ isActive }) => (
+            <>
+              <ListIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2'>Лента заказов</p>
+            </>
+          )}
+        </NavLink>
+      </div>
 
-  return (
-    <header className={styles.header}>
-      <nav className={`${styles.menu} p-4`}>
-        <div className={styles.menu_part_left}>
-          {/* Конструктор */}
-          <Link
-            to='/'
-            className={`${styles.link} ${isConstructor ? styles.link_active : ''}`}
-          >
-            <BurgerIcon type={isConstructor ? 'primary' : 'secondary'} />
-            <p className='text text_type_main-default ml-2 mr-10'>
-              Конструктор
-            </p>
-          </Link>
+      <div className={styles.logo}>
+        <NavLink to='/' className={styles.logo_link}>
+          <Logo className='' />
+        </NavLink>
+      </div>
 
-          {/* Лента заказов */}
-          <Link
-            to='/feed'
-            className={`${styles.link} ${isFeed ? styles.link_active : ''}`}
-          >
-            <ListIcon type={isFeed ? 'primary' : 'secondary'} />
-            <p className='text text_type_main-default ml-2'>Лента заказов</p>
-          </Link>
-        </div>
-
-        <div className={styles.logo}>
-          <Link to='/'>
-            <Logo className='' />
-          </Link>
-        </div>
-
-        <div className={styles.link_position_last}>
-          {/* Личный кабинет */}
-          <Link
-            to='/profile'
-            className={`${styles.link} ${isProfile ? styles.link_active : ''}`}
-          >
-            <ProfileIcon type={isProfile ? 'primary' : 'secondary'} />
-            <p className='text text_type_main-default ml-2'>
-              {userName || 'Личный кабинет'}
-            </p>
-          </Link>
-        </div>
-      </nav>
-    </header>
-  );
-};
+      <div className={styles.link_position_last}>
+        {/* Личный кабинет */}
+        <NavLink
+          to='/profile'
+          className={({ isActive }) =>
+            `${styles.link} ${isActive ? styles.link_active : ''}`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <ProfileIcon type={isActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2'>
+                {userName || 'Личный кабинет'}
+              </p>
+            </>
+          )}
+        </NavLink>
+      </div>
+    </nav>
+  </header>
+);
