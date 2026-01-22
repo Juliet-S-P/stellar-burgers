@@ -30,9 +30,7 @@ export const ResetPassword: FC = () => {
         localStorage.removeItem('resetPassword');
         navigate('/login');
       })
-      .catch(() => {
-        // Ошибка сброса пароля
-      });
+      .catch(() => {});
   };
 
   useEffect(() => {

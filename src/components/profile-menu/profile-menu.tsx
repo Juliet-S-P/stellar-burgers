@@ -15,9 +15,7 @@ export const ProfileMenu: FC = () => {
       .then(() => {
         navigate('/login');
       })
-      .catch(() => {
-        // Ошибка при выходе
-      });
+      .catch(() => {});
   };
 
   return <ProfileMenuUI handleLogout={handleLogout} pathname={pathname} />;

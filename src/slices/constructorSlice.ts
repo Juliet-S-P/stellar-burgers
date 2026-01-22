@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
 import { TIngredient, TConstructorIngredient } from '@utils-types';
 import { RootState } from '../services/store';
 
@@ -20,14 +19,8 @@ export const constructorSlice = createSlice({
     addBun: (state, action: PayloadAction<TIngredient>) => {
       state.bun = action.payload;
     },
-    addIngredient: {
-      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
-        state.ingredients.push(action.payload);
-      },
-      prepare: (ingredient: TIngredient) => {
-        const id = uuidv4();
-        return { payload: { ...ingredient, id } };
-      }
+    addIngredient: (state, action: PayloadAction<TConstructorIngredient>) => {
+      state.ingredients.push(action.payload);
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.ingredients = state.ingredients.filter(
@@ -75,7 +68,6 @@ export const {
   clearConstructor
 } = constructorSlice.actions;
 
-// Селекторы должны быть объявлены после создания slice
 export const getConstructorBun = (state: RootState) =>
   state.burgerConstructor.bun;
 export const getConstructorIngredients = (state: RootState) =>

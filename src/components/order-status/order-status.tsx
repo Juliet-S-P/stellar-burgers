@@ -6,7 +6,7 @@ const statusText: { [key: string]: string } = {
   pending: 'Готовится',
   done: 'Выполнен',
   created: 'Создан',
-  cancelled: 'Отменён' // нужен ли
+  cancelled: 'Отменён'
 };
 
 export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {

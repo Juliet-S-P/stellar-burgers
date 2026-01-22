@@ -208,9 +208,7 @@ export const authSlice = createSlice({
     setUser: (state, action: PayloadAction<TUser | null>) => {
       state.user = action.payload;
     },
-    updateWebSocketConnection: (state) => {
-      // Редуктор для обновления WebSocket соединения
-    }
+    updateWebSocketConnection: (state) => {}
   },
   extraReducers: (builder) => {
     builder

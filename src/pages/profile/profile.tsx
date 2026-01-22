@@ -49,9 +49,7 @@ export const Profile: FC = () => {
       .then(() => {
         setFormValue((prev) => ({ ...prev, password: '' }));
       })
-      .catch(() => {
-        // Ошибка обновления профиля
-      })
+      .catch(() => {})
       .finally(() => {
         setIsLoading(false);
       });

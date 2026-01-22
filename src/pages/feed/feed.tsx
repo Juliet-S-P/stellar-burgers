@@ -7,7 +7,9 @@ import {
   fetchFeeds,
   getSortedFeeds,
   getWsConnected,
-  getWsError
+  getWsError,
+  connectFeedSocket,
+  disconnectFeedSocket
 } from '../../slices/feedSlice';
 
 export const Feed: FC = () => {
@@ -17,12 +19,20 @@ export const Feed: FC = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!wsConnected) {
+    dispatch(connectFeedSocket());
+
+    return () => {
+      dispatch(disconnectFeedSocket());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!wsConnected && !wsError) {
       dispatch(fetchFeeds());
     }
-  }, [dispatch, wsConnected]);
+  }, [dispatch, wsConnected, wsError]);
 
-  if (!orders.length && !wsConnected) {
+  if (!orders.length && !wsConnected && !wsError) {
     return <Preloader />;
   }
 

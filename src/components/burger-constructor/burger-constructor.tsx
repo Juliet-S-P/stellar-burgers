@@ -51,7 +51,14 @@ export const BurgerConstructor: FC = () => {
       bun._id
     ];
 
-    dispatch(createOrder(burgerData));
+    dispatch(createOrder(burgerData))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      })
+      .catch((error) => {
+        console.error('Ошибка создания заказа:', error);
+      });
   };
 
   const closeOrderModal = () => {

@@ -17,10 +17,6 @@ import { fetchIngredients } from '../../slices/ingredientsSlice';
 import { checkUserAuth, getUser } from '../../slices/authSlice';
 import { ProtectedRoute } from '../protected-route';
 import {
-  connectFeedSocket,
-  disconnectFeedSocket
-} from '../../slices/feedSlice';
-import {
   connectProfileOrdersSocket,
   disconnectProfileOrdersSocket
 } from '../../slices/profileOrdersSlice';
@@ -40,24 +36,9 @@ const App = () => {
 
     dispatch(fetchIngredients());
     dispatch(checkUserAuth());
-    dispatch(connectFeedSocket());
 
     setInitialized(true);
-
-    return () => {
-      dispatch(disconnectFeedSocket());
-    };
   }, [dispatch, initialized]);
-
-  useEffect(() => {
-    if (!user || !initialized) return;
-
-    dispatch(connectProfileOrdersSocket());
-
-    return () => {
-      dispatch(disconnectProfileOrdersSocket());
-    };
-  }, [dispatch, user, initialized]);
 
   const handleModalClose = () => {
     navigate(-1);

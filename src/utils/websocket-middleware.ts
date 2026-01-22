@@ -32,12 +32,17 @@ class WebSocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectInterval = 3000;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isManualClose = false;
   private onOpenCallback?: () => void;
   private onMessageCallback?: (data: any) => void;
   private onErrorCallback?: (error: Event) => void;
   private onCloseCallback?: (event: CloseEvent) => void;
+
+  private log(message: string, level: 'log' | 'warn' | 'error' = 'log') {
+    const prefix = `[WebSocket:${this.type}]`;
+    console[level](`${prefix} ${message}`);
+  }
 
   private getWebSocketUrl(): string {
     let url = this.url;
@@ -54,11 +59,20 @@ class WebSocketService {
         ) {
           const encodedToken = encodeURIComponent(cleanToken);
           url = `${url}?token=${encodedToken}`;
+          this.log(`Token added to URL`);
+        } else {
+          this.warn('Invalid token format');
         }
+      } else {
+        this.warn('No access token found');
       }
     }
 
     return url;
+  }
+
+  private warn(message: string) {
+    this.log(message, 'warn');
   }
 
   private setupEventListeners() {
@@ -66,6 +80,7 @@ class WebSocketService {
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
+      this.log('Connection established');
       this.onOpenCallback?.();
     };
 
@@ -73,16 +88,33 @@ class WebSocketService {
       try {
         const data = JSON.parse(event.data);
         this.onMessageCallback?.(data);
-      } catch (error) {}
+      } catch (error) {
+        this.log(`Message parse error: ${error}`, 'error');
+      }
     };
 
     this.ws.onerror = (error) => {
+      this.log(`Error: ${error}`, 'error');
       this.onErrorCallback?.(error);
     };
 
     this.ws.onclose = (event) => {
-      if (!this.isManualClose && event.code !== 1000 && event.code !== 1001) {
-        this.scheduleReconnect();
+      this.log(`Closed with code: ${event.code}, reason: ${event.reason}`);
+
+      if (!this.isManualClose) {
+        if (event.code === 1008 || event.code === 1003) {
+          this.log('Token invalid, not reconnecting', 'error');
+          return;
+        }
+
+        if (event.code === 4001 || event.code === 4003) {
+          this.log(`Server error: ${event.reason}`, 'error');
+          return;
+        }
+
+        if (event.code !== 1000 && event.code !== 1001) {
+          this.scheduleReconnect();
+        }
       }
       this.onCloseCallback?.(event);
     };
@@ -92,17 +124,22 @@ class WebSocketService {
     if (this.isManualClose) return;
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      this.log('Max reconnection attempts reached', 'warn');
       return;
     }
 
     if (this.type === 'profileOrders') {
       const token = getCookie('accessToken');
       if (!token) {
+        this.log('No token available for reconnection', 'warn');
         return;
       }
     }
 
     this.reconnectAttempts++;
+    this.log(
+      `Reconnecting attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${this.reconnectInterval}ms`
+    );
 
     this.reconnectTimer = setTimeout(() => {
       this.connect();
@@ -114,6 +151,7 @@ class WebSocketService {
       this.ws?.readyState === WebSocket.OPEN ||
       this.ws?.readyState === WebSocket.CONNECTING
     ) {
+      this.log('Already connected or connecting');
       return;
     }
 
@@ -121,10 +159,18 @@ class WebSocketService {
 
     const url = this.getWebSocketUrl();
 
+    if (this.type === 'profileOrders' && url === this.url) {
+      this.warn('No token available, cannot connect');
+      return;
+    }
+
+    this.log(`Connecting to: ${url}`);
+
     try {
       this.ws = new WebSocket(url);
       this.setupEventListeners();
     } catch (error) {
+      this.log(`Connection error: ${error}`, 'error');
       this.scheduleReconnect();
     }
   }
@@ -134,11 +180,17 @@ class WebSocketService {
       try {
         const message = typeof data === 'string' ? data : JSON.stringify(data);
         this.ws.send(message);
-      } catch (error) {}
+        this.log(`Message sent: ${message}`);
+      } catch (error) {
+        this.log(`Send error: ${error}`, 'error');
+      }
+    } else {
+      this.log('Cannot send, connection not open', 'warn');
     }
   }
 
   close() {
+    this.log('Manual close requested');
     this.isManualClose = true;
 
     if (this.reconnectTimer) {
@@ -150,7 +202,9 @@ class WebSocketService {
       if (this.ws.readyState === WebSocket.OPEN) {
         try {
           this.ws.close(1000, 'Manual close');
-        } catch (error) {}
+        } catch (error) {
+          this.log(`Close error: ${error}`, 'error');
+        }
       }
       this.ws = null;
     }
