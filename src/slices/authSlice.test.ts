@@ -1,4 +1,10 @@
-import { authSlice, loginUser } from './authSlice';
+import { 
+  authSlice, 
+  loginUser, 
+  clearAuthError, 
+  clearPasswordState,
+  setUser 
+} from './authSlice';
 
 describe('authSlice', () => {
   const mockUser = {
@@ -30,7 +36,7 @@ describe('authSlice', () => {
         authChecked: false
       };
 
-      const action = { type: 'auth/clearAuthError' };
+      const action = clearAuthError();
       const state = authSlice.reducer(stateWithError, action);
       
       expect(state.error).toBeNull();
@@ -46,7 +52,7 @@ describe('authSlice', () => {
         authChecked: false
       };
 
-      const action = { type: 'auth/clearPasswordState' };
+      const action = clearPasswordState();
       const state = authSlice.reducer(stateWithPasswordSuccess, action);
       
       expect(state.forgotPasswordSuccess).toBe(false);
@@ -54,10 +60,7 @@ describe('authSlice', () => {
     });
 
     it('should handle setUser', () => {
-      const action = { 
-        type: 'auth/setUser',
-        payload: mockUser
-      };
+      const action = setUser(mockUser as any);
       const state = authSlice.reducer(authSlice.getInitialState(), action);
       
       expect(state.user).toEqual(mockUser);

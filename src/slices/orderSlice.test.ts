@@ -1,4 +1,9 @@
-import { orderSlice, createOrder } from './orderSlice';
+import { 
+  orderSlice, 
+  createOrder, 
+  clearOrder, 
+  addOrder 
+} from './orderSlice';
 
 describe('orderSlice', () => {
   const mockOrder = {
@@ -33,7 +38,7 @@ describe('orderSlice', () => {
         error: 'Some error'
       };
 
-      const action = { type: 'order/clearOrder' };
+      const action = clearOrder();
       const state = orderSlice.reducer(stateWithData, action);
       
       expect(state.orderModalData).toBeNull();
@@ -41,15 +46,11 @@ describe('orderSlice', () => {
     });
 
     it('should handle addOrder', () => {
-      const action = { 
-        type: 'order/addOrder',
-        payload: mockOrder
-      };
+      const action = addOrder(mockOrder);
       const state = orderSlice.reducer(orderSlice.getInitialState(), action);
       
       expect(state.orders).toHaveLength(1);
       expect(state.orders[0]).toEqual(mockOrder);
-
       expect(state.orderRequest).toBe(false);
       expect(state.loading).toBe(false);
     });
@@ -70,7 +71,7 @@ describe('orderSlice', () => {
       );
       
       expect(state.orderRequest).toBe(true);
-      expect(state.loading).toBe(false); 
+      expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
     });
 
@@ -91,7 +92,7 @@ describe('orderSlice', () => {
       );
       
       expect(state.orderRequest).toBe(false);
-      expect(state.loading).toBe(false); 
+      expect(state.loading).toBe(false);
       expect(state.orderModalData).toEqual(mockOrder);
       expect(state.orders).toHaveLength(1);
       expect(state.orders[0]).toEqual(mockOrder);
@@ -116,7 +117,7 @@ describe('orderSlice', () => {
       );
       
       expect(state.orderRequest).toBe(false);
-      expect(state.loading).toBe(false); 
+      expect(state.loading).toBe(false);
       expect(state.orderModalData).toBeNull();
       expect(state.orders).toHaveLength(0);
       expect(state.error).toBe(errorMessage);
@@ -140,7 +141,7 @@ describe('orderSlice', () => {
       );
       
       expect(state.orderRequest).toBe(false);
-      expect(state.loading).toBe(false); 
+      expect(state.loading).toBe(false);
       expect(state.orderModalData).toBeNull();
       expect(state.orders).toHaveLength(0);
       expect(state.error).toBe(errorMessage);
@@ -155,17 +156,14 @@ describe('orderSlice', () => {
         error: null
       };
 
-
       const pendingAction = { type: createOrder.pending.type };
       const stateAfterPending = orderSlice.reducer(initialState, pendingAction);
       
       expect(stateAfterPending.orderRequest).toBe(true);
-      expect(stateAfterPending.loading).toBe(false); 
-
+      expect(stateAfterPending.loading).toBe(false);
       expect(stateAfterPending.orders).toEqual(initialState.orders);
       expect(stateAfterPending.orderModalData).toEqual(initialState.orderModalData);
-      expect(stateAfterPending.error).toBeNull(); 
-
+      expect(stateAfterPending.error).toBeNull();
 
       const newOrder = { ...mockOrder, number: 54321 };
       const fulfilledAction = { 
@@ -175,40 +173,10 @@ describe('orderSlice', () => {
       const stateAfterFulfilled = orderSlice.reducer(stateAfterPending, fulfilledAction);
       
       expect(stateAfterFulfilled.orderRequest).toBe(false);
-      expect(stateAfterFulfilled.loading).toBe(false); 
-
+      expect(stateAfterFulfilled.loading).toBe(false);
       expect(stateAfterFulfilled.orders).toHaveLength(2);
-      expect(stateAfterFulfilled.orders[0]).toEqual(newOrder); 
+      expect(stateAfterFulfilled.orders[0]).toEqual(newOrder);
       expect(stateAfterFulfilled.orderModalData).toEqual(newOrder);
-    });
-  });
-
-
-  describe('loading field behavior', () => {
-    it('should have loading field but not change it during createOrder lifecycle', () => {
-      const initialState = orderSlice.getInitialState();
-      
-
-      expect(initialState).toHaveProperty('loading');
-      expect(initialState.loading).toBe(false);
-
-      const pendingState = orderSlice.reducer(initialState, { type: createOrder.pending.type });
-      expect(pendingState.orderRequest).toBe(true);
-      expect(pendingState.loading).toBe(false); 
-
-      const fulfilledState = orderSlice.reducer(
-        { ...initialState, orderRequest: true },
-        { type: createOrder.fulfilled.type, payload: mockOrder }
-      );
-      expect(fulfilledState.orderRequest).toBe(false);
-      expect(fulfilledState.loading).toBe(false); 
-
-      const rejectedState = orderSlice.reducer(
-        { ...initialState, orderRequest: true },
-        { type: createOrder.rejected.type, payload: 'Error' }
-      );
-      expect(rejectedState.orderRequest).toBe(false);
-      expect(rejectedState.loading).toBe(false); 
     });
   });
 });

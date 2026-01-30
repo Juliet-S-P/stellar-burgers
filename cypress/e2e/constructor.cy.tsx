@@ -37,314 +37,183 @@ describe('Burger Constructor', () => {
   describe('1. Загрузка ингредиентов', () => {
     it('должна загружать и отображать ингредиенты', () => {
 
-      cy.get('[data-testid^="ingredient-"]').should('have.length.at.least', 4);
-      cy.contains('Краторная булка N-200i').should('exist');
-      cy.contains('Биокотлета из марсианской Магнолии').should('exist');
-      cy.contains('Филе Люминесцентного тетраодонтимформа').should('exist');
-      cy.contains('Соус Spicy-X').should('exist');
+      cy.get('[data-testid^="ingredient-item-"]').should('have.length.at.least', 4);
+      
+      cy.get('section').contains('Булки').parents('section').within(() => {
+        cy.contains('Краторная булка N-200i').should('exist');
+      });
+      
+      cy.get('section').contains('Начинки').parents('section').within(() => {
+        cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+        cy.contains('Филе Люминесцентного тетраодонтимформа').should('exist');
+      });
+      
+      cy.get('section').contains('Соусы').parents('section').within(() => {
+        cy.contains('Соус Spicy-X').should('exist');
+      });
+
+      cy.get('button').contains('Добавить').should('exist');
     });
   });
 
   describe('2. Модальные окна ингредиентов', () => {
     it('должна открывать модальное окно при клике на ингредиент', () => {
-
-      cy.get('[data-testid="ingredient-bun"]').first().click();
-      cy.wait(1000);
+      cy.contains('Краторная булка N-200i').click();
       
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-        const bodyText = $body.text();
-        const hasIngredientDetails = bodyText.includes('Детали ингредиента') || 
-                                    (bodyText.includes('Краторная булка N-200i') &&
-                                    (bodyText.includes('420') || bodyText.includes('Калории')));
-        
-        if (hasIngredientDetails) {
+      cy.get('[data-testid="modal"]').should('be.visible').within(() => {
+        cy.get('[data-testid="ingredient-details"]').within(() => {
           cy.contains('Краторная булка N-200i').should('exist');
-          cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-            expect($body.text()).to.include('Краторная булка N-200i');
-            expect($body.text()).to.include('420');
-          });
-        } else {
-          cy.url().then((url: string) => {
-            if (url.includes('/ingredients/')) {
-              cy.contains('Краторная булка N-200i').should('exist');
-              cy.go('back');
-            }
-          });
-        }
+          cy.get('[data-testid="ingredient-calories"]').should('contain', '420');
+        });
       });
     });
 
     it('должна закрывать модальное окно по клику на крестик', () => {
-      cy.get('[data-testid="ingredient-bun"]').first().click();
-      cy.wait(1000);
+      cy.contains('Краторная булка N-200i').click();
+      cy.wait(500);
       
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-        let closeButton = null;
-        
-
-        const closeByTestId = $body.find('[data-testid*="close"], [data-testid*="Close"]').first();
-        if (closeByTestId.length) {
-          closeButton = closeByTestId[0];
-        }
-        
-        if (!closeButton) {
-          const buttons = $body.find('button');
-          for (let i = 0; i < buttons.length; i++) {
-            const button = buttons[i];
-            if (button.textContent?.includes('×') || 
-                button.textContent?.includes('close') ||
-                button.getAttribute('aria-label')?.includes('close')) {
-              closeButton = button;
-              break;
-            }
-          }
-        }
-        
-        if (!closeButton) {
-          const closeByClass = $body.find('[class*="close"], [class*="Close"]').first();
-          if (closeByClass.length) {
-            closeButton = closeByClass[0];
-          }
-        }
-        
-        if (closeButton) {
-          cy.wrap(closeButton).click({ force: true });
-          cy.wait(500);
-          cy.contains('Детали ингредиента').should('not.exist');
-        } else {
-          cy.go('back');
-        }
+      cy.get('[data-testid="modal"]').should('be.visible').within(() => {
+        cy.get('[data-testid="modal-close-button"]').click({ force: true });
       });
+      
+      cy.wait(500);
+      cy.get('[data-testid="modal"]').should('not.exist');
     });
 
     it('должна закрывать модальное окно по клику на оверлей', () => {
-      cy.get('[data-testid="ingredient-main"]').first().click();
-      cy.wait(1000);
+      cy.contains('Краторная булка N-200i').click();
+      cy.wait(500);
       
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-
-        const overlayByTestId = $body.find('[data-testid*="overlay"], [data-testid*="backdrop"]').first();
-        
-        if (overlayByTestId.length) {
-          cy.wrap(overlayByTestId).click({ force: true });
-          cy.wait(500);
-          cy.contains('Детали ингредиента').should('not.exist');
-        } else {
-          const overlays = $body.find('[class*="overlay"], [class*="backdrop"], [class*="modal__overlay"]');
-          
-          if (overlays.length) {
-            cy.wrap(overlays.first()).click({ force: true });
-            cy.wait(500);
-            cy.contains('Детали ингредиента').should('not.exist');
-          } else {
-            const possibleOverlays = $body.find('div').filter((index: number, el: HTMLElement) => {
-              const style = window.getComputedStyle(el);
-              return style.position === 'fixed' && 
-                     (style.backgroundColor.includes('rgba(0, 0, 0') || 
-                      style.backgroundColor.includes('rgb(0, 0, 0'));
-            });
-            
-            if (possibleOverlays.length) {
-              cy.wrap(possibleOverlays.first()).click({ force: true });
-              cy.wait(500);
-            } else {
-              cy.go('back');
-            }
-          }
-        }
-      });
+      cy.get('[data-testid="modal-overlay"]').click({ force: true });
+      
+      cy.wait(500);
+      cy.get('[data-testid="modal"]').should('not.exist');
     });
 
     it('должна показывать правильные детали для каждого ингредиента', () => {
 
-      cy.get('[data-testid="ingredient-bun"]').first().click();
-      cy.wait(1000);
-      
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const text = $body.text();
-        expect(text).to.include('Краторная булка N-200i');
-        expect(text).to.include('420');
-      });
-      
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-        const closeButtons = $body.find('button').filter((index: number, el: Element) => {
-          const htmlEl = el as HTMLElement;
-          return htmlEl.textContent?.includes('×');
-        });
-        
-        if (closeButtons.length) {
-          cy.wrap(closeButtons.first()).click();
-        } else {
-          cy.go('back');
-        }
-      });
-      
+      cy.contains('Краторная булка N-200i').click();
       cy.wait(500);
       
-
-      cy.get('[data-testid="ingredient-main"]').first().click();
-      cy.wait(1000);
-      
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const text = $body.text();
-        expect(text).to.include('Биокотлета из марсианской Магнолии');
-        expect(text).to.include('4242');
-      });
-      
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-        const closeButtons = $body.find('button').filter((index: number, el: Element) => {
-          const htmlEl = el as HTMLElement;
-          return htmlEl.textContent?.includes('×');
+      cy.get('[data-testid="modal"]').should('be.visible').within(() => {
+        cy.get('[data-testid="ingredient-details"]').within(() => {
+          cy.contains('Краторная булка N-200i').should('exist');
+          cy.get('[data-testid="ingredient-calories"]').should('contain', '420');
         });
-        
-        if (closeButtons.length) {
-          cy.wrap(closeButtons.first()).click();
-        } else {
-          cy.go('back');
-        }
+      });
+
+      cy.get('[data-testid="modal"]').within(() => {
+        cy.get('[data-testid="modal-close-button"]').click();
+      });
+      cy.wait(500);
+
+      cy.contains('Биокотлета из марсианской Магнолии').click();
+      cy.wait(500);
+      
+      cy.get('[data-testid="modal"]').should('be.visible').within(() => {
+        cy.get('[data-testid="ingredient-details"]').within(() => {
+          cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+          cy.get('[data-testid="ingredient-calories"]').should('contain', '4242');
+        });
       });
     });
   });
 
   describe('3. Добавление ингредиентов в конструктор', () => {
     it('должна добавлять булку в конструктор', () => {
-
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('button').contains('Добавить').click({ force: true });
-      });
+      cy.contains('Краторная булка N-200i')
+        .closest('li, div')
+        .within(() => {
+          cy.get('button').contains('Добавить').click({ force: true });
+        });
       
       cy.wait(300);
-      
 
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const constructorText = $body.find('[data-testid*="constructor"], [class*="constructor"], [class*="burger-constructor"]').text();
-        expect(constructorText).to.include('Краторная');
-        expect(constructorText).to.include('булка');
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.contains('Краторная булка N-200i').should('exist');
+        cy.get('[data-testid="constructor-bun-top"]').should('exist');
+        cy.get('[data-testid="constructor-bun-bottom"]').should('exist');
       });
     });
 
     it('должна добавлять начинку в конструктор', () => {
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('button').contains('Добавить').click({ force: true });
-      });
+      cy.contains('Биокотлета из марсианской Магнолии')
+        .closest('li, div')
+        .within(() => {
+          cy.get('button').contains('Добавить').click({ force: true });
+        });
       
       cy.wait(300);
       
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const constructorText = $body.find('[data-testid*="constructor"], [class*="constructor"], [class*="burger-constructor"]').text();
-        expect(constructorText).to.include('Биокотлета');
-        expect(constructorText).to.include('марсианской');
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.contains('Биокотлета из марсианской Магнолии').should('exist');
       });
     });
 
     it('должна добавлять соус в конструктор', () => {
-
-      cy.get('[data-testid="ingredient-sauce"]').first().within(() => {
-        cy.get('button').contains('Добавить').click({ force: true });
-      });
+      cy.contains('Соус Spicy-X')
+        .closest('li, div')
+        .within(() => {
+          cy.get('button').contains('Добавить').click({ force: true });
+        });
       
       cy.wait(300);
       
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const constructorText = $body.find('[data-testid*="constructor"], [class*="constructor"], [class*="burger-constructor"]').text();
-        expect(constructorText).to.include('Соус');
-        expect(constructorText).to.include('Spicy-X');
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.contains('Соус Spicy-X').should('exist');
       });
     });
   });
 
   describe('4. Создание заказа', () => {
     it('должна выполнять полный цикл создания заказа', () => {
- 
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('button').contains('Добавить').click({ force: true });
-      });
+
+      cy.contains('Краторная булка N-200i')
+        .closest('li, div')
+        .within(() => {
+          cy.get('button').contains('Добавить').click({ force: true });
+        });
       cy.wait(500);
       
-
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('button').contains('Добавить').click({ force: true });
-      });
+      cy.contains('Биокотлета из марсианской Магнолии')
+        .closest('li, div')
+        .within(() => {
+          cy.get('button').contains('Добавить').click({ force: true });
+        });
       cy.wait(500);
-      
 
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        const text = $body.text();
-        expect(text).not.to.include('Выберите булки');
-        expect(text).not.to.include('Выберите начинку');
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.get('[data-testid="constructor-empty-bun-top"]').should('not.exist');
+        cy.get('[data-testid="constructor-empty-ingredients"]').should('not.exist');
+        cy.contains('Краторная булка N-200i').should('exist');
+        cy.contains('Биокотлета из марсианской Магнолии').should('exist');
       });
-      
 
-      cy.get('[data-testid="order-button"], button').contains('Оформить заказ').should('not.be.disabled').click();
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.get('[data-testid="order-button"]').should('not.be.disabled').click();
+      });
       
       cy.wait('@createOrder', { timeout: 10000 }).then((interception) => {
         cy.log('✅ Запрос создания заказа выполнен');
       });
       
       cy.wait(3000);
-      
-      cy.get('body').then(($body: JQuery<HTMLBodyElement>) => {
-        const bodyText = $body.text();
-        
-        if (bodyText.includes('12345')) {
-          cy.contains('12345').should('exist');
+
+      cy.get('[data-testid="modal"]').should('be.visible').within(() => {
+        cy.get('[data-testid="order-details"]').within(() => {
+          cy.get('[data-testid="order-number"]').should('contain', '12345');
           cy.log('✅ Номер заказа отображается: 12345');
-          
+        });
 
-          const closeButton = $body.find('[data-testid*="close"], [data-testid*="modal-close"]').first();
-          
-          if (!closeButton.length) {
+        cy.get('[data-testid="modal-close-button"]').click();
+      });
+      
+      cy.wait(500);
 
-            const closeByText = $body.find('button').filter((index: number, el: Element) => {
-              const htmlEl = el as HTMLElement;
-              return htmlEl.textContent?.includes('×') || htmlEl.textContent?.includes('закрыть');
-            }).first();
-            
-            if (closeByText.length) {
-              cy.wrap(closeByText).click({ force: true });
-              cy.wait(500);
-              cy.contains('12345').should('not.exist');
-              cy.log('✅ Модальное окно закрыто');
-            }
-          } else {
-            cy.wrap(closeButton).click({ force: true });
-            cy.wait(500);
-            cy.contains('12345').should('not.exist');
-            cy.log('✅ Модальное окно закрыто');
-          }
-          
-          cy.wait(1000);
-          cy.contains('Выберите булки').should('exist');
-          cy.contains('Выберите начинку').should('exist');
-          cy.log('✅ Конструктор очищен');
-          
-        } else {
-          cy.log('⚠️ Номер заказа 12345 не найден, проверяем другие индикаторы');
-          
-          const hasModal = $body.find('[data-testid*="modal"], [class*="modal"], [class*="Modal"]').length > 0;
-          const hasOrderText = bodyText.includes('идентификатор') || bodyText.includes('номер заказа');
-          
-          if (hasModal || hasOrderText) {
-            cy.log('✅ Есть модальное окно заказа');
-            
-            const closeButton = $body.find('[data-testid*="close"], button').filter((index: number, el: Element) => {
-              const htmlEl = el as HTMLElement;
-              return htmlEl.textContent?.includes('×');
-            }).first();
-            
-            if (closeButton.length) {
-              cy.wrap(closeButton).click();
-            }
-            
-            cy.wait(1000);
-            cy.contains('Выберите булки').should('exist');
-            cy.contains('Выберите начинку').should('exist');
-            cy.log('✅ Конструктор очищен');
-          } else {
-            cy.log('ℹ️ Модальное окно не найдено, но тест проверяет логику');
-            expect(true).to.be.true;
-          }
-        }
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.get('[data-testid="constructor-empty-bun-top"]').should('exist');
+        cy.get('[data-testid="constructor-empty-ingredients"]').should('exist');
+        cy.log('✅ Конструктор очищен');
       });
     });
   });
@@ -360,15 +229,14 @@ describe('Burger Constructor', () => {
         expect(token).to.equal('test-refresh-token');
       });
     });
-
-    it('должна очищать токены после теста', () => {
-      expect(true).to.be.true;
-    });
   });
 
   describe('6. Моковые данные', () => {
     it('должна использовать фикстуры для ответов API', () => {
-      cy.get('[data-testid^="ingredient-"]').should('exist');
+
+      cy.get('section').contains('Булки').parents('section').within(() => {
+        cy.contains('Краторная булка N-200i').should('exist');
+      });
       cy.getCookie('accessToken').should('exist');
     });
   });
@@ -378,13 +246,17 @@ describe('Burger Constructor', () => {
       cy.intercept('GET', '**/api/ingredients').as('ingredientsRequest');
       cy.intercept('POST', '**/api/orders').as('orderRequest');
       cy.intercept('GET', '**/api/auth/user').as('userRequest');
+
+      cy.get('section').contains('Булки').parents('section').within(() => {
+        cy.contains('Краторная булка N-200i').should('exist');
+      });
       
-      cy.get('[data-testid^="ingredient-"]').should('have.length.at.least', 4);
-      cy.contains('Краторная булка N-200i').should('exist');
-      cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+      cy.get('section').contains('Начинки').parents('section').within(() => {
+        cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+      });
       
-      cy.get('body').should(($body: JQuery<HTMLBodyElement>) => {
-        expect($body.text()).to.include('Оформить заказ');
+      cy.get('[data-testid="burger-constructor"]').within(() => {
+        cy.contains('Оформить заказ').should('exist');
       });
       
       cy.getCookie('accessToken').should('exist');

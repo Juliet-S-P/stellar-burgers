@@ -1,6 +1,21 @@
-import { feedSlice, fetchFeeds } from './feedSlice';
+import { 
+  feedSlice, 
+  fetchFeeds, 
+  clearSelectedOrder, 
+  clearFeedError 
+} from './feedSlice';
 
 describe('feedSlice', () => {
+  const mockOrder = {
+    _id: '1',
+    number: 12345,
+    name: 'Test Order',
+    ingredients: [],
+    status: 'done' as const,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  };
+
   describe('initial state', () => {
     it('should have correct initial state', () => {
       expect(feedSlice.getInitialState()).toEqual({
@@ -21,10 +36,10 @@ describe('feedSlice', () => {
     it('should handle clearSelectedOrder', () => {
       const stateWithOrder = {
         ...feedSlice.getInitialState(),
-        selectedOrder: { _id: '1', number: 12345 } as any
+        selectedOrder: mockOrder
       };
 
-      const action = { type: 'feed/clearSelectedOrder' };
+      const action = clearSelectedOrder();
       const state = feedSlice.reducer(stateWithOrder, action);
       
       expect(state.selectedOrder).toBeNull();
@@ -36,7 +51,7 @@ describe('feedSlice', () => {
         error: 'Some error'
       };
 
-      const action = { type: 'feed/clearFeedError' };
+      const action = clearFeedError();
       const state = feedSlice.reducer(stateWithError, action);
       
       expect(state.error).toBeNull();
@@ -54,7 +69,7 @@ describe('feedSlice', () => {
 
     it('should update state on fulfilled', () => {
       const mockData = {
-        orders: [{ _id: '1', number: 12345 }] as any,
+        orders: [mockOrder],
         total: 100,
         totalToday: 10
       };
@@ -72,6 +87,63 @@ describe('feedSlice', () => {
       expect(state.orders).toEqual(mockData.orders);
       expect(state.total).toBe(mockData.total);
       expect(state.totalToday).toBe(mockData.totalToday);
+    });
+
+    it('should update error on rejected', () => {
+      const errorMessage = 'Network error';
+      const action = { 
+        type: fetchFeeds.rejected.type,
+        payload: errorMessage
+      };
+      const state = feedSlice.reducer(
+        { ...feedSlice.getInitialState(), feedsLoading: true },
+        action
+      );
+      
+      expect(state.feedsLoading).toBe(false);
+      expect(state.error).toBe(errorMessage);
+    });
+  });
+
+  describe('WS actions', () => {
+    it('should handle wsMessage', () => {
+      const wsData = {
+        orders: [mockOrder],
+        total: 100,
+        totalToday: 10
+      };
+      
+      const action = { 
+        type: 'feed/wsMessage',
+        payload: wsData
+      };
+      const state = feedSlice.reducer(feedSlice.getInitialState(), action);
+      
+      expect(state.orders).toEqual(wsData.orders);
+      expect(state.total).toBe(wsData.total);
+      expect(state.totalToday).toBe(wsData.totalToday);
+      expect(state.wsError).toBeNull();
+    });
+
+    it('should handle wsConnectionChange', () => {
+      const action = { 
+        type: 'feed/wsConnectionChange',
+        payload: true
+      };
+      const state = feedSlice.reducer(feedSlice.getInitialState(), action);
+      
+      expect(state.wsConnected).toBe(true);
+    });
+
+    it('should handle wsError', () => {
+      const errorMessage = 'WebSocket error';
+      const action = { 
+        type: 'feed/wsError',
+        payload: errorMessage
+      };
+      const state = feedSlice.reducer(feedSlice.getInitialState(), action);
+      
+      expect(state.wsError).toBe(errorMessage);
     });
   });
 });
